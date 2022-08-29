@@ -285,12 +285,12 @@ import * as T /* and others above */ from "fp-ts/lib/Task";
 // Here, TaskEither result can be number | boolean (success case), string on error
 const arrayofTE = [TE.right(1), TE.right(true), TE.left("Oh shit")] as const;
 
-const run = pipe(
-    AP.sequenceT(T.)(...arrayofTE), // we use sequenceT here and pass T.task again
-    mergeFn
-);
+// const run = pipe(
+//     AP.sequenceT(T.)(...arrayofTE), // we use sequenceT here and pass T.task again
+//     mergeFns
+// );
 
-declare function mergeFn(a: T.Task<E.Either<string, number | boolean>[]>): T.Task<Results>
+// declare function mergeFn(a: T.Task<E.Either<string, number | boolean>[]>): T.Task<Results>
 
 
 

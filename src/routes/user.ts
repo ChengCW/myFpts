@@ -1,6 +1,6 @@
 import { FastifyInstance, RouteShorthandOptions, FastifyReply } from 'fastify'
 import { pipe } from 'fp-ts/lib/function'
-import { IDeleteUserBody, IUser } from '../types/user'
+import { IDeleteUserBody, IUser, IUsers } from '../types/user'
 import { UserRepoImpl } from './../repo/user'
 import * as TE from 'fp-ts/lib/TaskEither'
 import * as A from 'fp-ts/lib/Array'
@@ -45,17 +45,24 @@ const UserRouter = (server: FastifyInstance, opts: RouteShorthandOptions, done: 
 
 
 
-    server.post<{ Body: IUser }>('/users', /*postUsersOptions,*/async (request, reply) => {
-        const userBody = request.body
+    server.post<{ Body: IUsers }>('/users', /*postUsersOptions,*/async (request, reply) => {
+        const userBodys = request.body
+        const addUser = (userBody: IUser): TE.TaskEither<Error, IUser> =>
+            pipe(
+                userBody.id,
+                userRepo.getPhaseById,
+                TE.chain(phase =>
+                    userRepo.addUser(phase.phase, userBody)
+                )
+            )
+        console.log("12222222", userBodys.users)
 
 
 
         return pipe(
-            userBody.id,
-            userRepo.getPhaseById,
-            TE.chain(phase =>
-                userRepo.addUser(phase.phase, userBody)
-            ),
+            userBodys.users,
+            A.map((x) => addUser(x)),
+            A.sequence(TE.MonadTask),
             TE.match(
                 (error) => reply.status(500).send({ msg: `${error}` }),
                 (user) => reply.status(200).send({ user })

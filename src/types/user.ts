@@ -18,3 +18,8 @@ export interface IQueryPhaseResult {
 export interface Iquery {
     eqpid: string
 }
+
+export interface IUsers {
+    users: Array<IUser>
+
+}
