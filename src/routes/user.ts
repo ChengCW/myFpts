@@ -50,9 +50,9 @@ const UserRouter = (server: FastifyInstance, opts: RouteShorthandOptions, done: 
         const addUser = (userBody: IUser): TE.TaskEither<Error, IUser> =>
             pipe(
                 userBody.id,
-                userRepo.getPhaseById,
-                TE.chain(phase =>
-                    userRepo.addUser(phase.phase, userBody)
+                userRepo.getCountryByCode,
+                TE.chain(country =>
+                    userRepo.addUser(country.country, userBody)
                 )
             )
         console.log("12222222", userBodys.users)
@@ -74,9 +74,9 @@ const UserRouter = (server: FastifyInstance, opts: RouteShorthandOptions, done: 
         const userBody = request.body
         return pipe(
             userBody.id,
-            userRepo.getPhaseById,
-            TE.chain(phase =>
-                userRepo.updateUser(phase.phase, userBody),
+            userRepo.getCountryByCode,
+            TE.chain(country =>
+                userRepo.updateUser(country.country, userBody),
             ),
             TE.match(
                 (error) => reply.status(500).send({ msg: `${error}` }),

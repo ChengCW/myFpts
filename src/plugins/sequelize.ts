@@ -16,8 +16,8 @@ const createSequelizeConn = () => {
         dialect: 'mariadb'
     });
     DB = {
-        conn: new Map([['P1', sequelize]]),
-        userModel: new Map([['P1', UserFactory(sequelize)]])
+        conn: new Map([['Taiwan', sequelize]]),
+        userModel: new Map([['Taiwan', UserFactory(sequelize)]])
     }
 }
 

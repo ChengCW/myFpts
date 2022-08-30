@@ -1,4 +1,4 @@
-import { IDeleteUserBody, IQueryPhaseResult, IUser } from './../types/user'
+import { IDeleteUserBody, IQueryCountryResult, IUser } from './../types/user'
 import { DB } from './../plugins/sequelize'
 import { Op, QueryTypes, Sequelize } from 'sequelize'
 
@@ -13,12 +13,12 @@ import * as TE from 'fp-ts/lib/TaskEither'
 import * as E from 'fp-ts/lib/Either'
 
 interface UserRepo {
-    getUsers(phase: string): Promise<Array<IUser> | null>
-    addUser(phase: string, userBody: IUser): TE.TaskEither<Error, IUser>
-    updateUser(phase: string, userBody: IUser): TE.TaskEither<Error, IUser>
+    getUsers(country: string): Promise<Array<IUser> | null>
+    addUser(country: string, userBody: IUser): TE.TaskEither<Error, IUser>
+    updateUser(country: string, userBody: IUser): TE.TaskEither<Error, IUser>
     deleteUser(deleteUserBody: IDeleteUserBody): TE.TaskEither<Error, IUser[]>
-    getPhaseById(id: string): TE.TaskEither<Error, IQueryPhaseResult>
-    getUsefulModel(phase: string): TE.TaskEither<Error, typeof User>
+    getCountryByCode(id: string): TE.TaskEither<Error, IQueryCountryResult>
+    getUsefulModel(country: string): TE.TaskEither<Error, typeof User>
 }
 
 class UserRepoImpl implements UserRepo {
@@ -27,8 +27,8 @@ class UserRepoImpl implements UserRepo {
     static of(): UserRepoImpl {
         return new UserRepoImpl()
     }
-    getUsefulModel = (phase: string): TE.TaskEither<Error, typeof User> => pipe(
-        DB.userModel.get(phase),
+    getUsefulModel = (country: string): TE.TaskEither<Error, typeof User> => pipe(
+        DB.userModel.get(country),
         O.fromNullable,
         O.match(
             () => TE.left(new Error('Can not find corresponding database config')),
@@ -36,12 +36,12 @@ class UserRepoImpl implements UserRepo {
         ),
     )
 
-    async getUsers(phase: string): Promise<Array<IUser> | null> {
-        const model = DB.userModel.get(phase)
+    async getUsers(country: string): Promise<Array<IUser> | null> {
+        const model = DB.userModel.get(country)
         return model ? model.findAll() : null
     }
 
-    addUser(phase: string, userBody: IUser): TE.TaskEither<Error, IUser> {
+    addUser(country: string, userBody: IUser): TE.TaskEither<Error, IUser> {
         const addUserTryCatch = (model: typeof User): TE.TaskEither<Error, IUser> => {
             return pipe(
                 TE.tryCatch(
@@ -56,7 +56,7 @@ class UserRepoImpl implements UserRepo {
 
         const process = pipe(
 
-            this.getUsefulModel(phase),
+            this.getUsefulModel(country),
             TE.chain(x => addUserTryCatch(x))
 
         )
@@ -66,7 +66,7 @@ class UserRepoImpl implements UserRepo {
         return process
     }
 
-    updateUser(phase: string, userBody: IUser): TE.TaskEither<Error, IUser> {
+    updateUser(country: string, userBody: IUser): TE.TaskEither<Error, IUser> {
 
         const where = {
             where: {
@@ -100,7 +100,7 @@ class UserRepoImpl implements UserRepo {
         const process = pipe(
 
 
-            // DB.userModel.get(phase),
+            // DB.userModel.get(country),
             // O.fromNullable,
             // O.match(
             //     () => TE.left(new Error('XXXX')),
@@ -109,7 +109,7 @@ class UserRepoImpl implements UserRepo {
             //         return updateUserTryCatch(x)
             //     }
             // ),
-            this.getUsefulModel(phase),
+            this.getUsefulModel(country),
             TE.chain(x => updateUserTryCatch(x))
 
         )
@@ -151,7 +151,7 @@ class UserRepoImpl implements UserRepo {
         }
         const run = pipe(
             TE.Do,
-            TE.bind('getModel', () => this.getUsefulModel(deleteUserBody.phase)),
+            TE.bind('getModel', () => this.getUsefulModel(deleteUserBody.country)),
             TE.bind('getUsers', ({ getModel }) => getUserTryCatch(getModel))
 
         )
@@ -170,7 +170,7 @@ class UserRepoImpl implements UserRepo {
 
     }
 
-    getPhaseById(id: string): TE.TaskEither<Error, IQueryPhaseResult> {
+    getCountryByCode(id: string): TE.TaskEither<Error, IQueryCountryResult> {
 
         const getAvailableSeqConnOrNull = (m: Map<string, Sequelize>): O.Option<Sequelize> => pipe(
             M.keys(S.Ord)(m),
@@ -178,21 +178,21 @@ class UserRepoImpl implements UserRepo {
             O.map(x => m.get(x)),
             O.chain(O.fromNullable)
         )
-        const queryPhaseSql = (s: Sequelize): TE.TaskEither<Error, IQueryPhaseResult> => {
+        const queryCountrySql = (s: Sequelize): TE.TaskEither<Error, IQueryCountryResult> => {
             return pipe(
                 TE.tryCatch(
                     () => s.query(sql, { type: QueryTypes.SELECT, plain: true }),
                     (error) => new Error(`${error}`)
                 ),
-                TE.chain((queryResult) => queryResult ? TE.right(queryResult as IQueryPhaseResult) : TE.left(new Error(`Can not find phase`)))
+                TE.chain((queryResult) => queryResult ? TE.right(queryResult as IQueryCountryResult) : TE.left(new Error(`Can not find country`)))
             )
         }
-        const sql = "SELECT `phase` FROM `testdb`.`Phase` WHERE (`id` = 'haha') ORDER BY `id` LIMIT 1 OFFSET 0;"
+        const sql = "SELECT `country` FROM `testdb`.`Country` WHERE (`code` = 'TWN') ORDER BY `TWN` LIMIT 1 OFFSET 0;"
         return pipe(
             getAvailableSeqConnOrNull(DB.conn),
             O.match(
                 () => TE.left(new Error('Can not find available db connection')),
-                x => queryPhaseSql(x))
+                x => queryCountrySql(x))
         )
     }
 }

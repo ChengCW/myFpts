@@ -7,16 +7,16 @@ export interface IUser {
 }
 
 export interface IDeleteUserBody {
-    phase: string,
+    country: string,
     ids: Array<string>
 }
 
-export interface IQueryPhaseResult {
-    phase: string,
+export interface IQueryCountryResult {
+    country: string,
 }
 
 export interface Iquery {
-    eqpid: string
+    countryCode: string
 }
 
 export interface IUsers {
