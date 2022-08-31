@@ -3,8 +3,10 @@ import { pipe } from 'fp-ts/lib/function'
 import { IDeleteUserBody, IUser, IUsers } from '../types/user'
 import { UserRepoImpl } from './../repo/user'
 import * as TE from 'fp-ts/lib/TaskEither'
+import * as T from 'fp-ts/lib/Task'
 import * as A from 'fp-ts/lib/Array'
 import * as E from 'fp-ts/lib/Either'
+import { logInfo } from '../utils/log'
 //import { userResponseSchema, usersResponseSchema, postUsersBodySchema } from '../schemas/user'
 
 const UserRouter = (server: FastifyInstance, opts: RouteShorthandOptions, done: (error?: Error) => void) => {
@@ -55,7 +57,7 @@ const UserRouter = (server: FastifyInstance, opts: RouteShorthandOptions, done: 
                     userRepo.addUser(country.country, userBody)
                 )
             )
-        console.log("12222222", userBodys.users)
+        //console.log("12222222", userBodys.users)
 
 
 
@@ -66,7 +68,9 @@ const UserRouter = (server: FastifyInstance, opts: RouteShorthandOptions, done: 
             TE.match(
                 (error) => reply.status(500).send({ msg: `${error}` }),
                 (user) => reply.status(200).send({ user })
-            )
+            ),
+            T.chainFirstIOK(() => () => logInfo(`Add User`)()),
+
         )()
     })
 

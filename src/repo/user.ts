@@ -11,6 +11,7 @@ import * as S from 'fp-ts/string'
 import * as M from 'fp-ts/Map'
 import * as TE from 'fp-ts/lib/TaskEither'
 import * as E from 'fp-ts/lib/Either'
+import { logInfo } from '../utils/log'
 
 interface UserRepo {
     getUsers(country: string): Promise<Array<IUser> | null>
@@ -178,16 +179,19 @@ class UserRepoImpl implements UserRepo {
             O.map(x => m.get(x)),
             O.chain(O.fromNullable)
         )
-        const queryCountrySql = (s: Sequelize): TE.TaskEither<Error, IQueryCountryResult> => {
-            return pipe(
+        const queryCountrySql = (s: Sequelize): TE.TaskEither<Error, IQueryCountryResult> =>
+            pipe(
                 TE.tryCatch(
                     () => s.query(sql, { type: QueryTypes.SELECT, plain: true }),
                     (error) => new Error(`${error}`)
                 ),
-                TE.chain((queryResult) => queryResult ? TE.right(queryResult as IQueryCountryResult) : TE.left(new Error(`Can not find country`)))
+                TE.chainFirstIOK((x) => () => logInfo(`query result:${JSON.stringify(x)}`)()),
+                TE.chain((queryResult) => queryResult ? TE.right(queryResult as IQueryCountryResult)
+                    : TE.left(new Error(`Can not find country`))),
+
             )
-        }
-        const sql = "SELECT `country` FROM `testdb`.`Country` WHERE (`code` = 'TWN') ORDER BY `TWN` LIMIT 1 OFFSET 0;"
+
+        const sql = "SELECT `code` FROM `testdb`.`Country`;"
         return pipe(
             getAvailableSeqConnOrNull(DB.conn),
             O.match(

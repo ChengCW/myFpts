@@ -7,24 +7,7 @@ import { UserRouter } from './routes/user'
 import { Iquery } from './types/user'
 
 const opts = {
-    schema: {
-        querystring: {
-            type: "object",
-            properties: {
-                eqpId: {
-                    type: "string",
-                },
-                ruleObj: {
-                    type: "object",
-                    properties: {
-                        ruleId: { type: "number" },
-                        fabphase: { type: "string" },
-                    }
 
-                }
-            },
-        },
-    },
 }
 
 
@@ -45,11 +28,10 @@ const startFastify = async () => {
     server.register(FastifyCors, {})
 
     server.get<{ Querystring: Iquery }>('/ping', opts, async (request, reply) => {
-        const toolObj = { eqpId: "123", phase: "456" }
-        const eqplist = [toolObj, toolObj, toolObj, toolObj, toolObj, toolObj]
+
         reply.header("Access-Control-Allow-Origin", "*");
         reply.header("Access-Control-Allow-Methods", "GET");
-        return reply.code(200).send({ eqplist })
+        return reply.code(200).send({})
     })
 
     server.get('/pingping', async (request, reply) => {
